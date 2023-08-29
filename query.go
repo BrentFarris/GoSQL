@@ -132,9 +132,10 @@ func (q *Query) selectString(sb *strings.Builder) []any {
 		}
 		sb.WriteString(t.name)
 	}
-	// TODO:  Multiple join
-	if len(q.joins) > 0 {
-		j := q.joins[0]
+	for i, j := range q.joins {
+		if i > 0 {
+			sb.WriteRune(' ')
+		}
 		sb.WriteString(" LEFT JOIN ")
 		sb.WriteString(j.rightTable)
 		sb.WriteString(" ON ")
