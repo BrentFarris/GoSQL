@@ -1,4 +1,4 @@
-package db
+package gosql
 
 type Table struct {
 	name        string

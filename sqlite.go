@@ -1,7 +1,8 @@
-package db
+package gosql
 
 import (
 	"database/sql"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
