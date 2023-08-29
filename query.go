@@ -12,6 +12,7 @@ const (
 )
 
 type Query struct {
+	raw    string
 	action string
 	tables []*Table
 	joins  []Join
@@ -29,6 +30,11 @@ func Select() Query { return newQuery(ActionSelect) }
 func Insert() Query { return newQuery(ActionInsert) }
 func Update() Query { return newQuery(ActionUpdate) }
 func Delete() Query { return newQuery(ActionDelete) }
+func Raw(sql string) Query {
+	q := newQuery("")
+	q.raw = sql
+	return q
+}
 
 func (q Query) HasConstraints() bool {
 	for _, t := range q.tables {
@@ -217,6 +223,9 @@ func (q *Query) deleteString(sb *strings.Builder) []any {
 }
 
 func (q *Query) Build() (string, []any) {
+	if len(q.raw) > 0 {
+		return q.raw, []any{}
+	}
 	sb := strings.Builder{}
 	values := make([]any, 0)
 	switch q.action {
