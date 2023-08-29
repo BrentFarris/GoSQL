@@ -39,12 +39,12 @@ func (db *SQLite) Close() error {
 	return err
 }
 
-func (db SQLite) Query(query Query) (*sql.Rows, error) {
+func (db SQLite) Query(query *Query) (*sql.Rows, error) {
 	q, v := query.Build()
 	return db.conn.Query(q, v...)
 }
 
-func (db SQLite) Exec(query Query) (sql.Result, error) {
+func (db SQLite) Exec(query *Query) (sql.Result, error) {
 	q, v := query.Build()
 	return db.conn.Exec(q, v...)
 }

@@ -28,19 +28,19 @@ type Query struct {
 	distinct       bool
 }
 
-func newQuery(action string) Query {
-	return Query{
+func newQuery(action string) *Query {
+	return &Query{
 		action: action,
 		tables: make([]*Table, 0),
 		joins:  make([]Join, 0),
 	}
 }
 
-func Select() Query { return newQuery(ActionSelect) }
-func Insert() Query { return newQuery(ActionInsert) }
-func Update() Query { return newQuery(ActionUpdate) }
-func Delete() Query { return newQuery(ActionDelete) }
-func Raw(sql string) Query {
+func Select() *Query { return newQuery(ActionSelect) }
+func Insert() *Query { return newQuery(ActionInsert) }
+func Update() *Query { return newQuery(ActionUpdate) }
+func Delete() *Query { return newQuery(ActionDelete) }
+func Raw(sql string) *Query {
 	q := newQuery("")
 	q.raw = sql
 	return q
@@ -49,6 +49,15 @@ func Raw(sql string) Query {
 func (q Query) HasConstraints() bool {
 	for _, t := range q.tables {
 		if len(t.constraints.constraints) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func (q Query) IsJoin(tableName string) bool {
+	for _, j := range q.joins {
+		if j.rightTable == tableName {
 			return true
 		}
 	}
@@ -146,6 +155,8 @@ func (q *Query) whereString(sb *strings.Builder) []any {
 					sb.WriteString(c.conjunction)
 					sb.WriteRune(' ')
 				}
+				sb.WriteString(t.name)
+				sb.WriteRune('.')
 				sb.WriteString(c.field)
 				sb.WriteString(c.condition)
 				sb.WriteRune('?')
@@ -173,16 +184,17 @@ func (q *Query) selectString(sb *strings.Builder) []any {
 		}
 	}
 	sb.WriteString(" FROM ")
-	for i, t := range q.tables {
-		if i > 0 {
+	fromCount := 0
+	for _, t := range q.tables {
+		if q.IsJoin(t.name) {
+			continue
+		} else if fromCount > 0 {
 			sb.WriteString(", ")
 		}
 		sb.WriteString(t.name)
+		fromCount++
 	}
-	for i, j := range q.joins {
-		if i > 0 {
-			sb.WriteRune(' ')
-		}
+	for _, j := range q.joins {
 		sb.WriteString(" LEFT JOIN ")
 		sb.WriteString(j.rightTable)
 		sb.WriteString(" ON ")
@@ -265,6 +277,8 @@ func (q *Query) updateString(sb *strings.Builder) []any {
 			if i > 0 || j > 0 {
 				sb.WriteString(", ")
 			}
+			sb.WriteString(t.name)
+			sb.WriteRune('.')
 			sb.WriteString(f)
 			sb.WriteString("=?")
 			values = append(values, t.values[j])

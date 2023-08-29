@@ -15,7 +15,7 @@ func TestSelect(t *testing.T) {
 	q.Join("Accounts", "Characters").
 		On("Id", "AccountId")
 	str, vals := q.Build()
-	if str != "SELECT Accounts.Name, Accounts.Email, Characters.Name, Characters.Class FROM Accounts, Characters LEFT JOIN Characters ON Characters.AccountId=Accounts.Id WHERE (Name=? OR Name=?) AND (Class=? OR Class=?)" {
+	if str != "SELECT Accounts.Name, Accounts.Email, Characters.Name, Characters.Class FROM Accounts LEFT JOIN Characters ON Characters.AccountId=Accounts.Id WHERE (Accounts.Name=? OR Accounts.Name=?) AND (Characters.Class=? OR Characters.Class=?)" {
 		t.Errorf("Query string is incorrect: %s", str)
 	}
 	if len(vals) != 4 {
@@ -50,7 +50,7 @@ func TestUpdate(t *testing.T) {
 		Set("Email", "bob@example.com").
 		Where("Id", ConditionEquals, 1)
 	str, vals := q.Build()
-	if str != "UPDATE Accounts SET Name=?, Email=? WHERE (Id=?)" {
+	if str != "UPDATE Accounts SET Accounts.Name=?, Accounts.Email=? WHERE (Accounts.Id=?)" {
 		t.Errorf("Query string is incorrect: %s", str)
 	}
 	if len(vals) != 3 {
@@ -66,7 +66,7 @@ func TestDelete(t *testing.T) {
 	q.From("Accounts").
 		Where("Id", ConditionEquals, 1)
 	str, vals := q.Build()
-	if str != "DELETE FROM Accounts WHERE (Id=?)" {
+	if str != "DELETE FROM Accounts WHERE (Accounts.Id=?)" {
 		t.Errorf("Query string is incorrect: %s", str)
 	}
 	if len(vals) != 1 {
