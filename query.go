@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -9,13 +10,21 @@ const (
 	ActionInsert = "INSERT"
 	ActionUpdate = "UPDATE"
 	ActionDelete = "DELETE"
+
+	OrderDirectionAscending  = "ASC"
+	OrderDirectionDescending = "DESC"
 )
 
 type Query struct {
-	raw    string
-	action string
-	tables []*Table
-	joins  []Join
+	raw            string
+	action         string
+	tables         []*Table
+	joins          []Join
+	orderBy        string
+	orderDirection string
+	limit          int
+	offset         int
+	ignore         bool
 }
 
 func newQuery(action string) Query {
@@ -91,6 +100,29 @@ func (q *Query) Join(leftTable, rightTable string) *Join {
 	return &q.joins[len(q.joins)-1]
 }
 
+func (q *Query) OrderAscending(field string) *Query {
+	q.orderBy = field
+	q.orderDirection = OrderDirectionAscending
+	return q
+}
+
+func (q *Query) OrderDescending(field string) *Query {
+	q.orderBy = field
+	q.orderDirection = OrderDirectionDescending
+	return q
+}
+
+func (q *Query) Ignore() *Query {
+	q.ignore = true
+	return q
+}
+
+func (q *Query) Limit(limit, offset int) *Query {
+	q.limit = limit
+	q.offset = offset
+	return q
+}
+
 func (q *Query) whereString(sb *strings.Builder) []any {
 	values := make([]any, 0)
 	if q.HasConstraints() {
@@ -153,12 +185,33 @@ func (q *Query) selectString(sb *strings.Builder) []any {
 		sb.WriteRune('.')
 		sb.WriteString(j.leftField)
 	}
-	return q.whereString(sb)
+	values := q.whereString(sb)
+	if len(q.orderBy) > 0 {
+		sb.WriteString(" ORDER BY ")
+		sb.WriteString(q.orderBy)
+		if len(q.orderDirection) > 0 {
+			sb.WriteRune(' ')
+			sb.WriteString(q.orderDirection)
+		}
+	}
+	if q.limit > 0 {
+		sb.WriteString(" LIMIT ")
+		sb.WriteString(strconv.Itoa(q.limit))
+	}
+	if q.offset > 0 {
+		sb.WriteString(" OFFSET ")
+		sb.WriteString(strconv.Itoa(q.offset))
+	}
+	return values
 }
 
 func (q *Query) insertString(sb *strings.Builder) []any {
 	values := make([]any, 0)
-	sb.WriteString("INSERT INTO ")
+	if q.ignore {
+		sb.WriteString("INSERT OR IGNORE INTO ")
+	} else {
+		sb.WriteString("INSERT INTO ")
+	}
 	for i, t := range q.tables {
 		if i > 0 {
 			sb.WriteString(", ")
