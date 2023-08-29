@@ -25,6 +25,7 @@ type Query struct {
 	limit          int
 	offset         int
 	ignore         bool
+	distinct       bool
 }
 
 func newQuery(action string) Query {
@@ -117,6 +118,11 @@ func (q *Query) Ignore() *Query {
 	return q
 }
 
+func (q *Query) Distinct() *Query {
+	q.distinct = true
+	return q
+}
+
 func (q *Query) Limit(limit, offset int) *Query {
 	q.limit = limit
 	q.offset = offset
@@ -153,6 +159,9 @@ func (q *Query) whereString(sb *strings.Builder) []any {
 
 func (q *Query) selectString(sb *strings.Builder) []any {
 	sb.WriteString("SELECT ")
+	if q.distinct {
+		sb.WriteString("DISTINCT ")
+	}
 	for i, t := range q.tables {
 		for j, f := range t.fields {
 			if i > 0 || j > 0 {
