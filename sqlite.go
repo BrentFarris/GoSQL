@@ -40,9 +40,11 @@ func (db *SQLite) Close() error {
 }
 
 func (db SQLite) Query(query Query) (*sql.Rows, error) {
-	return db.conn.Query(query.Build())
+	q, v := query.Build()
+	return db.conn.Query(q, v...)
 }
 
 func (db SQLite) Exec(query Query) (sql.Result, error) {
-	return db.conn.Exec(query.Build())
+	q, v := query.Build()
+	return db.conn.Exec(q, v...)
 }
