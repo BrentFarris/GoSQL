@@ -1,4 +1,4 @@
-module github.com/brentfarris/gosql
+module github.com/BrentFarris/GoSQL
 
 go 1.20
 
