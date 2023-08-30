@@ -142,8 +142,12 @@ func (q *Query) whereString(sb *strings.Builder) []any {
 	values := make([]any, 0)
 	if q.HasConstraints() {
 		sb.WriteString(" WHERE ")
-		for i, t := range q.tables {
-			if i > 0 {
+		count := 0
+		for _, t := range q.tables {
+			if len(t.constraints.constraints) == 0 {
+				continue
+			}
+			if count > 0 {
 				sb.WriteRune(' ')
 				sb.WriteString(t.conjunction)
 				sb.WriteRune(' ')
@@ -163,6 +167,7 @@ func (q *Query) whereString(sb *strings.Builder) []any {
 				values = append(values, c.value)
 			}
 			sb.WriteRune(')')
+			count++
 		}
 	}
 	return values

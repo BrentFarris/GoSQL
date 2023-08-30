@@ -26,8 +26,16 @@ func (t *Table) Fields(fields ...string) *Table {
 	return t
 }
 
-func (t *Table) Where(field, condition string, value any) *Constraints {
+func (t *Table) AndWhere(field, condition string, value any) *Constraints {
 	return t.constraints.And(field, condition, value)
+}
+
+func (t *Table) OrWhere(field, condition string, value any) *Constraints {
+	return t.constraints.Or(field, condition, value)
+}
+
+func (t *Table) Where(field, condition string, value any) *Constraints {
+	return t.AndWhere(field, condition, value)
 }
 
 func (t *Table) Values(values ...any) *Table {
