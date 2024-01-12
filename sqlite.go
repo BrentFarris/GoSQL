@@ -17,9 +17,8 @@ func NewSQLite(path string) SQLite {
 	}
 }
 
-func (db SQLite) IsOpen() bool {
-	return db.conn != nil
-}
+func (db *SQLite) Conn() *sql.DB { return db.conn }
+func (db SQLite) IsOpen() bool { return db.conn != nil }
 
 func (db *SQLite) Open() error {
 	if db.IsOpen() {
